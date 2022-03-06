@@ -1,0 +1,38 @@
+cls
+## open database connection
+##  Assuming that the database should be
+$path="C:\BTS6000_Data\New\20220305.mdb"
+
+$rs = new-object -comobject ADODB.Recordset
+
+#$conn.Open("Provider = Microsoft.ACE.OLEDB.12.0;Data Source = $path")
+$conn = New-Object System.Data.OleDb.OleDbConnection(“Provider = Microsoft.ACE.OLEDB.12.0;Data Source =$path”)
+$conn.Open()
+
+## read the data
+$cmd = New-Object System.Data.OleDb.OleDbCommand(“Select * FROM [Main]”, $conn)
+$data = $cmd.ExecuteReader()
+
+## create an array
+$Baterias = @()
+while ($data.read()) {
+         
+          $Bat = New-Object -TypeName System.Management.Automation.PSObject
+          Add-Member -InputObject $Bat -MemberType NoteProperty -Name “MODELO” -Value $data.GetValue(11)
+          Add-Member -InputObject $Bat -MemberType NoteProperty -Name “NUMERO DE SERIE” -Value $data.GetValue(16)
+          Add-Member -InputObject $Bat -MemberType NoteProperty -Name “FLAG” -Value $data.GetValue(19)
+         
+          $Baterias += $Bat
+
+}
+## close the connection
+$conn.Close()
+
+
+
+Write-Host “The current results are:”
+
+$order = $Baterias | sort SeasonBest, PersonalBest -Descending
+$order | Format-Table -AutoSize
+
+
